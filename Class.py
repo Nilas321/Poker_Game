@@ -2,7 +2,16 @@ class card():
     def __init__(self,card,suit):
         self.card = card
         self.suit = suit
+        self.value = self.get_value()
         pass
+
+    def get_value(self):
+        if self.card.isdigit():
+            return int(self.card)
+        elif self.card in ["Jack", "Queen", "King"]:
+            return 11 + ["Jack", "Queen", "King"].index(self.card)
+        elif self.card == "Ace":
+            return 14
 
     def __str__(self):
         return f"{self.card} of {self.suit}"
@@ -56,8 +65,7 @@ class Game():
             self.dealer_hand.dealt_card(self.deck.cards.pop())
     
     def turn(self):
-        for _ in range(1):
-            self.dealer_hand.dealt_card(self.deck.cards.pop())
+        self.dealer_hand.dealt_card(self.deck.cards.pop())
 
     
     def river(self):
@@ -93,7 +101,7 @@ if __name__ == "__main__":
 
 # This code defines a simple poker game structure with classes for cards, decks, hands, and the game itself.
 
-def flush(card_set,player_hand):
+def flush(card_set):
     suits = set()
     max_rank = 0
     for card in card_set:
@@ -102,58 +110,60 @@ def flush(card_set,player_hand):
     if not len(suits) == 1:
         return False
 
-    for card in player_hand.cards:
-        if card in card_set:
-            rank = card.card
-            if rank.isdigit():
-                max_rank = max(max_rank,int(rank))
-            elif rank in ["Jack", "Queen", "King"]:
-                max_rank = max(max_rank,11 + ["Jack", "Queen", "King"].index(rank))
-            else:
-                max_rank = 14  # Ace is the highest rank
             
-    return (len(suits) == 1, max_rank)
+    return "Flush"
 
-def straight(card_set, player_hand):
+def straight(card_set):
     ranks = set()
     max_rank = 0
     baby_straight = False
 
     for card in card_set:
-        if card.card.isdigit():
-            ranks.add(int(card.card))
-        elif card.card in ["Jack", "Queen", "King"]:
-            ranks.add(10 + ["Jack", "Queen", "King"].index(card.card))
-        else:
-            ranks.add(14)  # Ace is the highest rank
-
+        ranks.add(card.value)
     
-    
-
     ranks = sorted(ranks)
+
+    if len(ranks) < 5:
+        return False,0
 
     if ranks == (2,3,4,5,14):  # Special case for baby straight
         baby_straight = True
-
     elif ranks[-1] - ranks[0] != len(ranks) - 1:
         return False
 
+    return "Straight"
 
-    for card in player_hand.cards:
-        if card in card_set:
-            rank = card.card
-            if rank.isdigit():
-                max_rank = max(max_rank,int(rank))
-            elif rank in ["Jack", "Queen", "King"]:
-                max_rank = max(max_rank,11 + ["Jack", "Queen", "King"].index(rank))
-            else:
-                if rank == "Ace":
-                    if baby_straight:
-                        max_rank = max(max_rank, 1)  # Ace counts as 1 in baby straight
+#Pair analysis function to count pairs/trips/four of a kind in a hand
+#creates a dictionary with card values as keys and their counts as values
+#a four of a kind will return a dictionary with one key with value 4 and another key with value 1
+# a three of a kind will return a dictionary with one key with value 3 and another key with value 2
+# a 2 pair will return a dict with 3 keys
+# a single pair will return a dict with 4 keys
+# a high card will return a dict with 5 keys
 
-                else:
-                    max_rank = 14
-    return False
+def pair_analysis(card_set):
+    pair_dict = {}
+    for card in card_set:
+        if card.value in pair_dict:
+            pair_dict[card.value] += 1
+        else:
+            pair_dict[card.value] = 1
+    
+    if len(pair_dict) == 2:
+        if 4 in pair_dict.values():
+            return "Four of a Kind"
+        elif 3 in pair_dict.values():
+            return "Three of a Kind"
+        return 
+    elif len(pair_dict) == 3:
+        return "Two Pair"
+    
+    elif len(pair_dict) == 4:
+        return "One Pair"
+    
+    elif len(pair_dict) == 5:
+        return "High Card"
+
 
 def evaluvate_hand(hand):
     total_cards = hand.cards + hand.dealer_hand.cards
