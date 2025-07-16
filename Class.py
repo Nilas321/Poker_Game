@@ -99,7 +99,15 @@ if __name__ == "__main__":
     print("Deck after dealing:", game.deck)
     print("Remaining cards in deck:", len(game.deck.cards))
 
-# This code defines a simple poker game structure with classes for cards, decks, hands, and the game itself.
+#function to create a dictionary from a set of cards
+def create_dict(card_set):
+    card_dict = {}
+    for card in card_set:
+        if card.value in card_dict:
+            card_dict[card.value] += 1
+        else:
+            card_dict[card.value] = 1
+    return card_dict
 
 def flush(card_set):
     suits = set()
@@ -111,11 +119,10 @@ def flush(card_set):
         return False
 
             
-    return "Flush"
+    return "Flush",max_rank
 
 def straight(card_set):
     ranks = set()
-    max_rank = 0
     baby_straight = False
 
     for card in card_set:
@@ -129,9 +136,9 @@ def straight(card_set):
     if ranks == (2,3,4,5,14):  # Special case for baby straight
         baby_straight = True
     elif ranks[-1] - ranks[0] != len(ranks) - 1:
-        return False
+        return False,0
 
-    return "Straight"
+    return "Straight", (max(ranks) if not baby_straight else 5)
 
 #Pair analysis function to count pairs/trips/four of a kind in a hand
 #creates a dictionary with card values as keys and their counts as values
@@ -142,13 +149,8 @@ def straight(card_set):
 # a high card will return a dict with 5 keys
 
 def pair_analysis(card_set):
-    pair_dict = {}
-    for card in card_set:
-        if card.value in pair_dict:
-            pair_dict[card.value] += 1
-        else:
-            pair_dict[card.value] = 1
-    
+    pair_dict = create_dict(card_set)
+
     if len(pair_dict) == 2:
         if 4 in pair_dict.values():
             return "Four of a Kind"
@@ -167,7 +169,41 @@ def pair_analysis(card_set):
     elif len(pair_dict) == 5:
         return "High Card"
 
+#a function to compare 2  card flushes and return the better flush 
+def compare_flushes(new_flush, old_flush):
+    # Sort both flushes by card value
+    new_flush = sorted(new_flush, key=lambda x: x.value, reverse=True)
+    old_flush = sorted(old_flush, key=lambda x: x.value, reverse=True)
 
+    for i in range(5):
+        if new_flush[i].value > old_flush[i].value:
+            return new_flush
+        elif new_flush[i].value < old_flush[i].value:
+            return old_flush
+        else:
+            continue
+
+    return new_flush  # If all cards are equal, return the first flush
+
+#compare paired hands
+def compare_paired(new_hand, old_hand):
+    # get the value,no of repeats of each hand
+    new_dict = create_dict(new_hand)
+    old_dict = create_dict(old_hand)
+
+    new_list = sorted([(key, value) for key, value in new_dict.items()], key=lambda x: (-x[1],x[0]),reverse=True)
+    old_list = sorted([(key, value) for key, value in old_dict.items()], key=lambda x: (-x[1],x[0]),reverse=True)
+
+    for i in range(len(new_list)):
+        if new_list[i][0] > old_list[i][0]:
+            return new_hand
+        elif new_list[i][0] < old_list[i][0]:
+            return old_hand
+
+    return new_hand  # If all cards are equal, return the first hand
+    
+
+    
 def evaluvate_hand(hand):
     total_cards = hand.cards + hand.dealer_hand.cards
     # Placeholder for hand evaluation logic
