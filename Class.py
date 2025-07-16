@@ -1,3 +1,8 @@
+from itertools import combinations
+
+
+
+
 class card():
     def __init__(self,card,suit):
         self.card = card
@@ -73,13 +78,13 @@ class Game():
 
     def play(self):
         self.deal()
-        print(game)
+        #print(game)
         self.flop()
-        print(game)
+        #print(game)
         self.turn()
-        print(game)
+        #print(game)
         self.river()
-        print(game)
+        #print(game)
     
     def get_player_hand(self):
         return self.player_hand
@@ -90,14 +95,6 @@ class Game():
     def __str__(self):
         return f"Player's Hand: {self.player_hand}\nDealer's Hand: {self.dealer_hand}"
     
-if __name__ == "__main__":
-    game = Game()
-    game.play()
-    print(game)
-    print("Player's Hand:", game.get_player_hand())
-    print("Dealer's Hand:", game.get_dealer_hand())
-    print("Deck after dealing:", game.deck)
-    print("Remaining cards in deck:", len(game.deck.cards))
 
 #function to create a dictionary from a set of cards
 def create_dict(card_set):
@@ -111,15 +108,13 @@ def create_dict(card_set):
 
 def flush(card_set):
     suits = set()
-    max_rank = 0
     for card in card_set:
         suits.add(card.suit)
-    
     if not len(suits) == 1:
-        return False
-
+        return None
+    #print(f"Flush found with cards: {', '.join(str(card) for card in card_set)}")
             
-    return "Flush",max_rank
+    return "Flush"
 
 def straight(card_set):
     ranks = set()
@@ -131,13 +126,14 @@ def straight(card_set):
     ranks = sorted(ranks)
 
     if len(ranks) < 5:
-        return False,0
-
-    if ranks == (2,3,4,5,14):  # Special case for baby straight
+        return None,0
+    check_val = ranks[-1] - ranks[0] 
+    #print(f"Checking Straight with ranks: {ranks}")
+    if ranks == [2,3,4,5,14]:  # Special case for baby straight
         baby_straight = True
-    elif ranks[-1] - ranks[0] != len(ranks) - 1:
-        return False,0
-
+        #print("Baby Straight found with cards: 2, 3, 4, 5, Ace")
+    elif check_val != 4:
+        return None,0
     return "Straight", (max(ranks) if not baby_straight else 5)
 
 #Pair analysis function to count pairs/trips/four of a kind in a hand
@@ -186,31 +182,156 @@ def compare_flushes(new_flush, old_flush):
     return new_flush  # If all cards are equal, return the first flush
 
 #compare paired hands
-def compare_paired(new_hand, old_hand):
+def compare_paired(old_hand, new_hand):
     # get the value,no of repeats of each hand
     new_dict = create_dict(new_hand)
     old_dict = create_dict(old_hand)
 
-    new_list = sorted([(key, value) for key, value in new_dict.items()], key=lambda x: (-x[1],x[0]),reverse=True)
-    old_list = sorted([(key, value) for key, value in old_dict.items()], key=lambda x: (-x[1],x[0]),reverse=True)
-
+    new_list = sorted([(key, value) for key, value in new_dict.items()], key=lambda x: (-x[1],x[0]))
+    old_list = sorted([(key, value) for key, value in old_dict.items()], key=lambda x: (-x[1],x[0]))
+    #print(f"New Hand: {new_list}, Old Hand: {old_list}")
     for i in range(len(new_list)):
         if new_list[i][0] > old_list[i][0]:
             return new_hand
         elif new_list[i][0] < old_list[i][0]:
             return old_hand
+        else:
+            continue
 
     return new_hand  # If all cards are equal, return the first hand
     
 
     
-def evaluvate_hand(hand):
-    total_cards = hand.cards + hand.dealer_hand.cards
-    # Placeholder for hand evaluation logic
-    # This function should evaluate the hand and return a score or ranking
-    return "Hand evaluation logic not implemented yet"
+def evaluate_hand(game):
+    print("Evaluating Best Hand...")
+    # Get all cards from player and dealer hands
+    total_cards = game.player_hand.cards + game.dealer_hand.cards
+    #total_cards = [card("Queen", "Spades"), card("3", "Hearts"), card("10", "Spades"),
+    #              card("King", "Spades"), card("4", "Spades"), card("Jack", "Spades"),
+    #             card("Ace", "Spades")]
+    print(f"Total Cards: {', '.join(str(card) for card in total_cards)}")
+    best_hand = None
+    best_set = None
+    prev_val = 0
+    for fivecardset in combinations(total_cards,5):
+        #print(f"Evaluating Hand: {', '.join(str(card) for card in fivecardset)}")
+        straight_val = straight(fivecardset)
+        temp_hand = pair_analysis(fivecardset)
+        is_flush = flush(fivecardset)
+        if is_flush and straight_val[1] == 14:
+            best_hand = "Royal Flush"
+            best_set = fivecardset
+            break
 
-def main():
-    game = Game()
-    game.play()
-    print(game)
+        elif is_flush and straight_val[1]:
+            if prev_val < straight_val[1]:
+                best_hand = "Straight Flush"
+                best_set = fivecardset
+                prev_val = straight_val[1]
+            else:
+                continue
+        
+        elif temp_hand == "Four of a Kind":
+            if best_hand != "Straight Flush":
+                if best_hand == temp_hand:
+                    best_set = compare_paired(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = temp_hand
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+        
+        elif temp_hand == "Full House":
+            if best_hand not in ["Straight Flush", "Four of a Kind"]:
+                if best_hand == temp_hand:
+                    best_set = compare_paired(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = temp_hand
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+        
+        elif is_flush == "Flush":
+            if best_hand not in ["Straight Flush", "Four of a Kind", "Full House"]:
+                if best_hand == "Flush":
+                    best_set = compare_flushes(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = "Flush"
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+        
+        elif straight_val[0]:
+            if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush"]:
+                if best_hand == "Straight":
+                    if prev_val < straight_val[1]:
+                        best_set = fivecardset
+                        prev_val = straight_val[1]
+                    continue
+                else:
+                    #print(f"Straight found with value: {straight_val} ")
+                    best_hand = "Straight"
+                    best_set = fivecardset
+                    prev_val = straight_val[1]
+            else:
+                continue
+        
+        elif temp_hand == "Three of a Kind":
+            if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight"]:
+                if best_hand == temp_hand:
+                    best_set = compare_paired(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = temp_hand
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+        
+        elif temp_hand == "Two Pair":
+            if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind"]:
+                if best_hand == temp_hand:
+                    best_set = compare_paired(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = temp_hand
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+        
+        elif temp_hand == "One Pair":
+            if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind", "Two Pair"]:
+                if best_hand == temp_hand:
+                    best_set = compare_paired(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = temp_hand
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+        elif temp_hand == "High Card":
+            if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind", "Two Pair", "One Pair"]:
+                if best_hand == temp_hand:
+                    best_set = compare_paired(best_set, fivecardset)
+                    continue
+                else:
+                    best_hand = temp_hand
+                    best_set = fivecardset
+                    prev_val = 0
+            else:
+                continue
+    
+    print(f"Best Hand: {best_hand}")
+    print(f"Best Set: {', '.join(str(card) for card in best_set)}")
+    
+game = Game()
+game.play()
+evaluate_hand(game)
