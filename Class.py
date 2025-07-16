@@ -153,10 +153,13 @@ def pair_analysis(card_set):
         if 4 in pair_dict.values():
             return "Four of a Kind"
         elif 3 in pair_dict.values():
-            return "Three of a Kind"
-        return 
+            return "Full House"
+
     elif len(pair_dict) == 3:
-        return "Two Pair"
+        if 3 in pair_dict.values():
+            return "Three of a Kind"
+        else:
+            return "Two Pair"
     
     elif len(pair_dict) == 4:
         return "One Pair"
