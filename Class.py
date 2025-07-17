@@ -95,6 +95,68 @@ class Game():
     def __str__(self):
         return f"Player's Hand: {self.player_hand}\nDealer's Hand: {self.dealer_hand}"
     
+def str_to_card(card_str,list=False):
+    if not list:
+        card_card = ''
+        card_suit = ''
+
+        if card_str[1].isdigit():
+            card_card = int(card_str[0])
+        elif card_str[0] == "T":
+            card_card = 10
+        elif card_str[0] == "J":
+            card_card = "Jack"
+        elif card_str[0] == "Q":
+            card_card = "Queen"
+        elif card_str[0] == "K":
+            card_card = "King"
+        elif card_str[0] == "A":
+            card_card = "Ace"
+        
+        if card_str[2] == "H":
+            card_suit = "Hearts"
+        elif card_str[2] == "D":
+            card_suit = "Diamonds"
+        elif card_str[2] == "C":
+            card_suit = "Clubs"
+        elif card_str[2] == "S":
+            card_suit = "Spades"
+
+        return card(card_card, card_suit)
+    
+    else:
+        card_list = []
+        for card_s in card_str:
+            print(f"Creating card from string: {card_s}")
+            card_card = ''
+            card_suit = ''
+
+            if card_s[0].isdigit():
+                print(f"Card value is digit: {card_s[0]}")
+                card_card = str(card_s[0])
+            elif card_s[0] == "T":
+                card_card = "10"
+            elif card_s[0] == "J":
+                card_card = "Jack"
+            elif card_s[0] == "Q":
+                card_card = "Queen"
+            elif card_s[0] == "K":
+                card_card = "King"
+            elif card_s[0] == "A":
+                card_card = "Ace"
+
+            if card_s[1] == "H":
+                card_suit = "Hearts"
+            elif card_s[1] == "D":
+                card_suit = "Diamonds"
+            elif card_s[1] == "C":
+                card_suit = "Clubs"
+            elif card_s[1] == "S":
+                card_suit = "Spades"
+            print(f"Creating card: {card_card} of {card_suit}")
+
+            card_list.append(card(card_card,card_suit))
+        return card_list
 
 #function to create a dictionary from a set of cards
 def create_dict(card_set):
@@ -209,6 +271,7 @@ def evaluate_hand(game):
     #total_cards = [card("Queen", "Spades"), card("3", "Hearts"), card("10", "Spades"),
     #              card("King", "Spades"), card("4", "Spades"), card("Jack", "Spades"),
     #             card("Ace", "Spades")]
+    #total_cards = str_to_card(["QH", "3H", "TS", "KS", "QS", "JS", "AS"], list=True)
     print(f"Total Cards: {', '.join(str(card) for card in total_cards)}")
     best_hand = None
     best_set = None
