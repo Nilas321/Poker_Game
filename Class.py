@@ -1,8 +1,6 @@
 from itertools import combinations
 
 
-
-
 class card():
     def __init__(self,card,suit):
         self.card = card
@@ -53,17 +51,75 @@ class Hand():
 
     def __str__(self):
         return ', '.join(str(card) for card in self.cards)
-    
+
+class Player():
+    def __init__(self,name,chips=1000):
+        self.chips = chips
+        self.name = name
+        self.hand = Hand()
+        self.best_set = None
+        self.best_hand = None
+
+        def get_hand(self):
+            return self.hand
+        def get_chips(self):
+            return self.chips
+
+        def __str__(self):
+            return f"Player: {self.name}, Chips: {self.chips}, Hand: {self.hand}"
+
+        def best_set(self,best_set):
+            self.best_set = best_set
+
+        def best_hand(self,best_hand):
+            self.best_hand = best_hand
+
+        def get_best_set(self):
+            return self.best_set
+        
+        def get_best_hand(self):
+            return self.best_hand
+        
+        def bet(self,amount):
+            if amount > self.chips:
+                raise ValueError("Not enough chips to bet")
+            self.chips -= amount
+            return amount
+
+        def check(self):
+            return 0
+
+        def call(self, amount):
+            if amount > self.chips:
+                raise ValueError("Not enough chips to call")
+            self.chips -= amount
+            return amount
+
+        def raise_bet(self, amount):
+            if amount > self.chips:
+                raise ValueError("Not enough chips to raise")
+            self.chips -= amount
+            return amount
+        
+        def fold(self):
+            self.hand = Hand()
+            self.best_hand = None
+
+            return "Folded"
+
+
 class Game():
-    def __init__(self,deck=None):
+    def __init__(self,deck=None,player1 = None,player2 = None):
         self.deck = deck if deck else Deck()
         self.deck.shuffle()
-        self.player_hand = Hand()
+        self.player1 = player1
+        self.player2 = player2
         self.dealer_hand = Hand()
 
     def deal(self):
         for _ in range(2):  # Deal two cards to each player
-            self.player_hand.dealt_card(self.deck.cards.pop())
+            self.player1.hand.dealt_card(self.deck.cards.pop())
+            self.player2.hand.dealt_card(self.deck.cards.pop())
     
     def flop(self):
         for _ in range(3):
@@ -94,32 +150,34 @@ class Game():
 
     def __str__(self):
         return f"Player's Hand: {self.player_hand}\nDealer's Hand: {self.dealer_hand}"
+
+
     
 def str_to_card(card_str,list=False):
     if not list:
         card_card = ''
         card_suit = ''
 
-        if card_str[1].isdigit():
+        if card_str[0].isdigit():
             card_card = int(card_str[0])
-        elif card_str[0] == "T":
+        elif card_str[0].Upper() == "T":
             card_card = 10
-        elif card_str[0] == "J":
+        elif card_str[0].Upper() == "J":
             card_card = "Jack"
-        elif card_str[0] == "Q":
+        elif card_str[0].Upper() == "Q":
             card_card = "Queen"
-        elif card_str[0] == "K":
+        elif card_str[0].Upper() == "K":
             card_card = "King"
-        elif card_str[0] == "A":
+        elif card_str[0].Upper() == "A":
             card_card = "Ace"
         
-        if card_str[2] == "H":
+        if card_str[1].Upper() == "H":
             card_suit = "Hearts"
-        elif card_str[2] == "D":
+        elif card_str[1].Upper() == "D":
             card_suit = "Diamonds"
-        elif card_str[2] == "C":
+        elif card_str[1].Upper() == "C":
             card_suit = "Clubs"
-        elif card_str[2] == "S":
+        elif card_str[1].Upper() == "S":
             card_suit = "Spades"
 
         return card(card_card, card_suit)
@@ -134,24 +192,24 @@ def str_to_card(card_str,list=False):
             if card_s[0].isdigit():
                 print(f"Card value is digit: {card_s[0]}")
                 card_card = str(card_s[0])
-            elif card_s[0] == "T":
+            elif card_s[0].Upper() == "T":
                 card_card = "10"
-            elif card_s[0] == "J":
+            elif card_s[0].Upper() == "J":
                 card_card = "Jack"
-            elif card_s[0] == "Q":
+            elif card_s[0].Upper() == "Q":
                 card_card = "Queen"
-            elif card_s[0] == "K":
+            elif card_s[0].Upper() == "K":
                 card_card = "King"
-            elif card_s[0] == "A":
+            elif card_s[0].Upper() == "A":
                 card_card = "Ace"
 
-            if card_s[1] == "H":
+            if card_s[1].Upper() == "H":
                 card_suit = "Hearts"
-            elif card_s[1] == "D":
+            elif card_s[1].Upper() == "D":
                 card_suit = "Diamonds"
-            elif card_s[1] == "C":
+            elif card_s[1].Upper() == "C":
                 card_suit = "Clubs"
-            elif card_s[1] == "S":
+            elif card_s[1].Upper() == "S":
                 card_suit = "Spades"
             print(f"Creating card: {card_card} of {card_suit}")
 
@@ -264,15 +322,15 @@ def compare_paired(old_hand, new_hand):
     
 
     
-def evaluate_hand(game):
+def evaluate_hand(game,player):
     print("Evaluating Best Hand...")
     # Get all cards from player and dealer hands
-    total_cards = game.player_hand.cards + game.dealer_hand.cards
+    total_cards = player.hand.cards + game.dealer_hand.cards
     #total_cards = [card("Queen", "Spades"), card("3", "Hearts"), card("10", "Spades"),
     #              card("King", "Spades"), card("4", "Spades"), card("Jack", "Spades"),
     #             card("Ace", "Spades")]
     #total_cards = str_to_card(["QH", "3H", "TS", "KS", "QS", "JS", "AS"], list=True)
-    print(f"Total Cards: {', '.join(str(card) for card in total_cards)}")
+    print(f"Total Cards: {', '.join(str(card) for card in player.hand.cards)} + {', '.join(str(card) for card in game.dealer_hand.cards)}")
     best_hand = None
     best_set = None
     prev_val = 0
@@ -380,6 +438,7 @@ def evaluate_hand(game):
                     prev_val = 0
             else:
                 continue
+        
         elif temp_hand == "High Card":
             if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind", "Two Pair", "One Pair"]:
                 if best_hand == temp_hand:
@@ -394,7 +453,136 @@ def evaluate_hand(game):
     
     print(f"Best Hand: {best_hand}")
     print(f"Best Set: {', '.join(str(card) for card in best_set)}")
-    
-game = Game()
+    player.best_set = best_set
+    player.best_hand = best_hand
+
+def compare_players(player1, player2):
+    ranking = enumerate(["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush", "Royal Flush"])
+    #higher the ranking, better the hand
+    rank_dict = {hand: rank for rank, hand in ranking}
+    rank_p1 = rank_dict[player1.best_hand]
+    rank_p2 = rank_dict[player2.best_hand]
+    if rank_p1 > rank_p2:
+        print(f"{player1.name} wins with {player1.best_hand}!")
+        return 
+    elif rank_p1 < rank_p2:
+        print(f"{player2.name} wins with {player2.best_hand}!")
+        return
+    else:
+        if rank_p2 == rank_p1 == 9:#Royal Flush":
+            print("It's a tie!")
+            return
+        elif rank_p2 == rank_p1 == 8:#"Straight Flush":
+            straight_p1 = straight(player1.best_set)
+            straight_p2 = straight(player2.best_set)
+            if straight_p1[1] > straight_p2[1]:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif straight_p1[1] < straight_p2[1]:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+            else:
+                print("It's a tie!")
+                return
+        elif rank_p2 == rank_p1 == 7:#"Four of a Kind":
+            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+            
+        elif rank_p2 == rank_p1 == 6:#"Full House":
+            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+        elif rank_p2 == rank_p1 == 5:#"Flush":
+            if compare_flushes(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return
+            elif compare_flushes(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_flushes(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+        elif rank_p2 == rank_p1 == 4:#"Straight":
+            if straight(player1.best_set)[1] > straight(player2.best_set)[1]:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif straight(player1.best_set)[1] < straight(player2.best_set)[1]:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+            else:
+                print("It's a tie!")
+                return
+        elif rank_p2 == rank_p1 == 3:#"Three of a Kind":
+            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return 
+            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+        elif rank_p2 == rank_p1 == 2:#"Two Pair":
+            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+        elif rank_p2 == rank_p1 == 1:#"One Pair":
+            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+                return
+        elif rank_p2 == rank_p1 == 0:#"High Card":
+            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+                print("It's a tie!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+                print(f"{player1.name} wins with {player1.best_hand}!")
+                return
+            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+                print(f"{player2.name} wins with {player2.best_hand}!")
+            return
+        else:
+            print("Unexpected case encountered!")
+            return
+
+    if player1.best_hand == player2.best_hand:
+        return "It's a tie!"
+    elif player1.best_hand > player2.best_hand:
+        return f"{player1.name} wins with {player1.best_hand}!"
+    else:
+        return f"{player2.name} wins with {player2.best_hand}!"
+
+p1 = Player("Player 1") 
+p2 = Player("Player 2")
+game = Game(player1=p1,player2=p2)
 game.play()
-evaluate_hand(game)
+print("\n")
+evaluate_hand(game,p1)
+print("\n")
+evaluate_hand(game,p2)
+print("\n")
+compare_players(p1, p2)
