@@ -312,13 +312,13 @@ def compare_paired(old_hand, new_hand):
     #print(f"New Hand: {new_list}, Old Hand: {old_list}")
     for i in range(len(new_list)):
         if new_list[i][0] > old_list[i][0]:
-            return new_hand
+            return  new_hand,"new_hand"
         elif new_list[i][0] < old_list[i][0]:
-            return old_hand
+            return old_hand,"old_hand"
         else:
             continue
 
-    return new_hand  # If all cards are equal, return the first hand
+    return new_hand,"Equal"  # If all cards are equal, return the first hand
     
 
     
@@ -355,7 +355,7 @@ def evaluate_hand(game,player):
         elif temp_hand == "Four of a Kind":
             if best_hand != "Straight Flush":
                 if best_hand == temp_hand:
-                    best_set = compare_paired(best_set, fivecardset)
+                    best_set = compare_paired(best_set, fivecardset)[0]
                     continue
                 else:
                     best_hand = temp_hand
@@ -367,7 +367,7 @@ def evaluate_hand(game,player):
         elif temp_hand == "Full House":
             if best_hand not in ["Straight Flush", "Four of a Kind"]:
                 if best_hand == temp_hand:
-                    best_set = compare_paired(best_set, fivecardset)
+                    best_set = compare_paired(best_set, fivecardset)[0]
                     continue
                 else:
                     best_hand = temp_hand
@@ -406,7 +406,7 @@ def evaluate_hand(game,player):
         elif temp_hand == "Three of a Kind":
             if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight"]:
                 if best_hand == temp_hand:
-                    best_set = compare_paired(best_set, fivecardset)
+                    best_set = compare_paired(best_set, fivecardset)[0]
                     continue
                 else:
                     best_hand = temp_hand
@@ -418,7 +418,7 @@ def evaluate_hand(game,player):
         elif temp_hand == "Two Pair":
             if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind"]:
                 if best_hand == temp_hand:
-                    best_set = compare_paired(best_set, fivecardset)
+                    best_set = compare_paired(best_set, fivecardset)[0]
                     continue
                 else:
                     best_hand = temp_hand
@@ -430,7 +430,7 @@ def evaluate_hand(game,player):
         elif temp_hand == "One Pair":
             if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind", "Two Pair"]:
                 if best_hand == temp_hand:
-                    best_set = compare_paired(best_set, fivecardset)
+                    best_set = compare_paired(best_set, fivecardset)[0]
                     continue
                 else:
                     best_hand = temp_hand
@@ -442,7 +442,7 @@ def evaluate_hand(game,player):
         elif temp_hand == "High Card":
             if best_hand not in ["Straight Flush", "Four of a Kind", "Full House", "Flush", "Straight", "Three of a Kind", "Two Pair", "One Pair"]:
                 if best_hand == temp_hand:
-                    best_set = compare_paired(best_set, fivecardset)
+                    best_set = compare_paired(best_set, fivecardset)[0]
                     continue
                 else:
                     best_hand = temp_hand
@@ -485,34 +485,34 @@ def compare_players(player1, player2):
                 print("It's a tie!")
                 return
         elif rank_p2 == rank_p1 == 7:#"Four of a Kind":
-            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
             
         elif rank_p2 == rank_p1 == 6:#"Full House":
-            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
         elif rank_p2 == rank_p1 == 5:#"Flush":
-            if compare_flushes(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_flushes(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return
-            elif compare_flushes(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_flushes(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_flushes(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_flushes(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
         elif rank_p2 == rank_p1 == 4:#"Straight":
@@ -526,43 +526,43 @@ def compare_players(player1, player2):
                 print("It's a tie!")
                 return
         elif rank_p2 == rank_p1 == 3:#"Three of a Kind":
-            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return 
-            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
         elif rank_p2 == rank_p1 == 2:#"Two Pair":
-            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
         elif rank_p2 == rank_p1 == 1:#"One Pair":
-            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
         elif rank_p2 == rank_p1 == 0:#"High Card":
-            if compare_paired(player1.best_set, player2.best_set) == player1.best_set == player2.best_set:
+            if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
                 print("It's a tie!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player1.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
-            elif compare_paired(player1.best_set, player2.best_set) == player2.best_set:
+            elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
                 print(f"{player2.name} wins with {player2.best_hand}!")
             return
         else:
