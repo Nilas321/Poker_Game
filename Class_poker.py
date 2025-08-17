@@ -59,6 +59,7 @@ class Player():
         self.hand = Hand()
         self.best_set = None
         self.best_hand = None
+        self.bet_amount = 0
 
         def get_hand(self):
             return self.hand
@@ -80,34 +81,7 @@ class Player():
         def get_best_hand(self):
             return self.best_hand
         
-        def bet(self,amount):
-            if amount > self.chips:
-                raise ValueError("Not enough chips to bet")
-            self.chips -= amount
-            return amount
-
-        def check(self):
-            return 0
-
-        def call(self, amount):
-            if amount > self.chips:
-                raise ValueError("Not enough chips to call")
-            self.chips -= amount
-            return amount
-
-        def raise_bet(self, amount):
-            if amount > self.chips:
-                raise ValueError("Not enough chips to raise")
-            self.chips -= amount
-            return amount
         
-        def fold(self):
-            self.hand = Hand()
-            self.best_hand = None
-
-            return "Folded"
-
-
 class Game():
     def __init__(self,deck=None,player1 = None,player2 = None):
         self.deck = deck if deck else Deck()
@@ -115,38 +89,8 @@ class Game():
         self.player1 = player1
         self.player2 = player2
         self.dealer_hand = Hand()
-
-    def deal(self):
-        for _ in range(2):  # Deal two cards to each player
-            self.player1.hand.dealt_card(self.deck.cards.pop())
-            self.player2.hand.dealt_card(self.deck.cards.pop())
-    
-    def flop(self):
-        for _ in range(3):
-            self.dealer_hand.dealt_card(self.deck.cards.pop())
-    
-    def turn(self):
-        self.dealer_hand.dealt_card(self.deck.cards.pop())
-
-    
-    def river(self):
-            self.dealer_hand.dealt_card(self.deck.cards.pop())
-
-    def play(self):
-        self.deal()
-        #print(game)
-        self.flop()
-        #print(game)
-        self.turn()
-        #print(game)
-        self.river()
-        #print(game)
-    
-    def get_player_hand(self):
-        return self.player_hand
-
-    def get_dealer_hand(self):
-        return self.dealer_hand
+        self.pot = 0
+        self.state = "pre_flop"  # Game state can be pre_flop, flop, turn, river, showdown
 
     def __str__(self):
         return f"Player's Hand: {self.player_hand}\nDealer's Hand: {self.dealer_hand}"
@@ -451,10 +395,11 @@ def evaluate_hand(game,player):
             else:
                 continue
     
+    best_set = sorted(best_set,key = lambda x:x.value,reverse=True)
     print(f"Best Hand: {best_hand}")
     print(f"Best Set: {', '.join(str(card) for card in best_set)}")
-    player.best_set = best_set
-    player.best_hand = best_hand
+    player.best_set =best_set
+    player.best_hand =best_hand
 
 def compare_players(player1, player2):
     ranking = enumerate(["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush", "Royal Flush"])
@@ -576,13 +521,3 @@ def compare_players(player1, player2):
     else:
         return f"{player2.name} wins with {player2.best_hand}!"
 
-p1 = Player("Player 1") 
-p2 = Player("Player 2")
-game = Game(player1=p1,player2=p2)
-game.play()
-print("\n")
-evaluate_hand(game,p1)
-print("\n")
-evaluate_hand(game,p2)
-print("\n")
-compare_players(p1, p2)
