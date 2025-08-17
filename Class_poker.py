@@ -60,6 +60,9 @@ class Player():
         self.best_set = None
         self.best_hand = None
         self.bet_amount = 0
+        self.is_folded = False
+        self.is_allin = False
+        self.is_call = False
 
         def get_hand(self):
             return self.hand
@@ -90,7 +93,9 @@ class Game():
         self.player2 = player2
         self.dealer_hand = Hand()
         self.pot = 0
-        self.state = "pre_flop"  # Game state can be pre_flop, flop, turn, river, showdown
+        self.state = "continue"  # Game state can be pre_flop, flop, turn, river, showdown
+        self.current_bet = 0
+        self.check_count = 0  # Count of how many times players have checked in the current round
 
     def __str__(self):
         return f"Player's Hand: {self.player_hand}\nDealer's Hand: {self.dealer_hand}"
@@ -401,123 +406,155 @@ def evaluate_hand(game,player):
     player.best_set =best_set
     player.best_hand =best_hand
 
-def compare_players(player1, player2):
+def compare_players(player1, player2,game):
     ranking = enumerate(["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush", "Royal Flush"])
     #higher the ranking, better the hand
     rank_dict = {hand: rank for rank, hand in ranking}
     rank_p1 = rank_dict[player1.best_hand]
     rank_p2 = rank_dict[player2.best_hand]
     if rank_p1 > rank_p2:
+        player1.chips += game.pot
         print(f"{player1.name} wins with {player1.best_hand}!")
         return 
     elif rank_p1 < rank_p2:
+        player2.chips += game.pot
         print(f"{player2.name} wins with {player2.best_hand}!")
         return
     else:
-        if rank_p2 == rank_p1 == 9:#Royal Flush":
+        if rank_p2 == rank_p1 == 9:#Royal Flush"
+            player1.chips += game.pot // 2
+            player2.chips += game.pot // 2
             print("It's a tie!")
             return
-        elif rank_p2 == rank_p1 == 8:#"Straight Flush":
+        elif rank_p2 == rank_p1 == 8:#"Straight Flush"
             straight_p1 = straight(player1.best_set)
             straight_p2 = straight(player2.best_set)
             if straight_p1[1] > straight_p2[1]:
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif straight_p1[1] < straight_p2[1]:
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
             else:
                 print("It's a tie!")
                 return
-        elif rank_p2 == rank_p1 == 7:#"Four of a Kind":
+        elif rank_p2 == rank_p1 == 7:#"Four of a Kind"
             if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
             
-        elif rank_p2 == rank_p1 == 6:#"Full House":
+        elif rank_p2 == rank_p1 == 6:#"Full House"
             if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
-        elif rank_p2 == rank_p1 == 5:#"Flush":
+        elif rank_p2 == rank_p1 == 5:#"Flush"
             if compare_flushes(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
             elif compare_flushes(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_flushes(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
-        elif rank_p2 == rank_p1 == 4:#"Straight":
+        elif rank_p2 == rank_p1 == 4:#"Straight"
             if straight(player1.best_set)[1] > straight(player2.best_set)[1]:
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif straight(player1.best_set)[1] < straight(player2.best_set)[1]:
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
             else:
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
-        elif rank_p2 == rank_p1 == 3:#"Three of a Kind":
+        elif rank_p2 == rank_p1 == 3:#"Three of a Kind"
             if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return 
             elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
-        elif rank_p2 == rank_p1 == 2:#"Two Pair":
+        elif rank_p2 == rank_p1 == 2:#"Two Pair"
             if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
-        elif rank_p2 == rank_p1 == 1:#"One Pair":
+        elif rank_p2 == rank_p1 == 1:#"One Pair"
             if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
                 return
-        elif rank_p2 == rank_p1 == 0:#"High Card":
+        elif rank_p2 == rank_p1 == 0:#"High Card"
             if compare_paired(player1.best_set, player2.best_set)[1] == "Equal":
+                player1.chips += game.pot // 2
+                player2.chips += game.pot // 2
                 print("It's a tie!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "old_hand":
+                player1.chips += game.pot
                 print(f"{player1.name} wins with {player1.best_hand}!")
                 return
             elif compare_paired(player1.best_set, player2.best_set)[1] == "new_hand":
+                player2.chips += game.pot
                 print(f"{player2.name} wins with {player2.best_hand}!")
             return
         else:
             print("Unexpected case encountered!")
             return
 
-    if player1.best_hand == player2.best_hand:
-        return "It's a tie!"
-    elif player1.best_hand > player2.best_hand:
-        return f"{player1.name} wins with {player1.best_hand}!"
-    else:
-        return f"{player2.name} wins with {player2.best_hand}!"
 
